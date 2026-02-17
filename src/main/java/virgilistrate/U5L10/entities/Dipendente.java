@@ -26,11 +26,13 @@ public class Dipendente {
     private String surname;
     private String email;
     private String avatarURL;
+    private String password;
 
-    public Dipendente(String username, String name, String surname, String email) {
+    public Dipendente(String username, String name, String surname, String email, String password) {
         this.username = username;
         this.name = name;
         this.surname = surname;
         this.email = email;
+       this.password = password;
     }
 }

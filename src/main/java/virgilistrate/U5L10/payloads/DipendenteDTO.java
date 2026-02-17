@@ -16,6 +16,8 @@ public record DipendenteDTO(
         String surname,
         @NotBlank(message = "L'email è obbligatoria")
         @Email(message = "L'indirizzo email inserito non è corretto!")
-        String email
+        String email,
+        @NotBlank(message = "la password è obbligatoria")
+        String password
 ) {
 }

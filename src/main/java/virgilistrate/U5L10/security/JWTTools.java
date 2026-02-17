@@ -9,6 +9,7 @@ import virgilistrate.U5L10.exceptions.UnauthorizedException;
 
 
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JWTTools {
@@ -45,5 +46,14 @@ public class JWTTools {
         }
 
 
+    }
+
+    public UUID extractIdFromToken(String token) {
+        return UUID.fromString(Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject());
     }
 }

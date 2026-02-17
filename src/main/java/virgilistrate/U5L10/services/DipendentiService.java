@@ -5,6 +5,7 @@ import com.cloudinary.utils.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import virgilistrate.U5L10.entities.Dipendente;
@@ -24,11 +25,15 @@ public class DipendentiService {
 
     private final DipendentiRepository dipendentiRepository;
     private final Cloudinary cloudinaryUploader;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public DipendentiService(DipendentiRepository dipendentiRepository, Cloudinary cloudinaryUploader) {
+    public DipendentiService(DipendentiRepository dipendentiRepository,
+                             Cloudinary cloudinaryUploader,
+                             PasswordEncoder passwordEncoder) {
         this.dipendentiRepository = dipendentiRepository;
         this.cloudinaryUploader = cloudinaryUploader;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public Dipendente save(DipendenteDTO payload) {
@@ -41,7 +46,17 @@ public class DipendentiService {
             throw new BadRequestException("Lo username " + d.getUsername() + " è già in uso!");
         });
 
-        Dipendente newDipendente = new Dipendente(payload.username(), payload.name(), payload.surname(), payload.email());
+
+        String hashedPassword = passwordEncoder.encode(payload.password());
+
+        Dipendente newDipendente = new Dipendente(
+                payload.username(),
+                payload.name(),
+                payload.surname(),
+                payload.email(),
+                hashedPassword
+        );
+
         newDipendente.setAvatarURL("https://ui-avatars.com/api?name=" + payload.name() + "+" + payload.surname());
 
         Dipendente saved = this.dipendentiRepository.save(newDipendente);
@@ -54,8 +69,11 @@ public class DipendentiService {
         if (size > 100 || size < 0) size = 10;
         if (page < 0) page = 0;
 
-        Pageable pageable = PageRequest.of(page, size,
-                sortCriteria.equals("desc") ? Sort.by(orderBy).descending() : Sort.by(orderBy));
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                sortCriteria.equalsIgnoreCase("desc") ? Sort.by(orderBy).descending() : Sort.by(orderBy)
+        );
 
         return this.dipendentiRepository.findAll(pageable);
     }
@@ -83,7 +101,9 @@ public class DipendentiService {
         found.setName(payload.getName());
         found.setSurname(payload.getSurname());
         found.setEmail(payload.getEmail());
-        found.setAvatarURL("https://res.cloudinary.com/tuoCloudName/image/upload/v123/default-avatar.png" + payload.getName() + "+" + payload.getSurname());
+
+
+        found.setAvatarURL("https://ui-avatars.com/api?name=" + payload.getName() + "+" + payload.getSurname());
 
         Dipendente modified = this.dipendentiRepository.save(found);
 
